@@ -20,9 +20,19 @@ body, html {
     height: 33%;
     margin: auto;
 }
+.menu-item-middle-top {
+    display: table-cell;
+    vertical-align: top;
+    margin: 0;
+}
 .menu-item-middle {
     display: table-cell;
     vertical-align: middle;
+    margin: 0;
+}
+.menu-item-middle-bottom {
+    display: table-cell;
+    vertical-align: bottom;
     margin: 0;
 }
 .menu-item {

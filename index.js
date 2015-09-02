@@ -17,9 +17,8 @@
   colors = ['000000', 'ffffff', 'ff0000', '00ff00', '0000ff', '00ffff', 'ffff00'];
 
   anims = {
-    'fg': range(5),
+    'fg': range(6),
     'bg': range(5),
-    'custom': range(5),
     'color': colors
   };
 

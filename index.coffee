@@ -17,9 +17,8 @@ colors = [
 ]
 
 anims = 
-  'fg': range(5)
+  'fg': range(6)
   'bg': range(5)
-  'custom': range(5)
   'color': colors
 
 app.set 'port', process.env.PORT or 5000

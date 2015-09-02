@@ -14,7 +14,6 @@
       mapping = {
         'bg-btn': 'bg-menu',
         'fg-btn': 'fg-menu',
-        'custom-btn': 'custom-menu',
         'color-btn': 'color-menu'
       };
       menu_id = '#' + mapping[$(this).attr('id')];

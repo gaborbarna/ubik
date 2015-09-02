@@ -97,16 +97,21 @@
     extend(BoxAnimation, superClass);
 
     function BoxAnimation(id) {
-      var material;
+      var material, texture;
       this.id = id;
-      material = this.getMaterial();
+      texture = this.getTexture();
+      material = this.getMaterial(texture);
       this.mesh = this.getBoxMesh(material);
       this.mesh.position.set(0, 0, 0.1);
     }
 
-    BoxAnimation.prototype.getMaterial = function() {
+    BoxAnimation.prototype.getTexture = function() {
+      return THREE.ImageUtils.loadTexture("/images/marble.jpg");
+    };
+
+    BoxAnimation.prototype.getMaterial = function(texture) {
       return new THREE.MeshLambertMaterial({
-        color: 0xCC0000
+        map: texture
       });
     };
 
@@ -118,10 +123,10 @@
     };
 
     BoxAnimation.prototype.update = function(delta, now, audioData) {
-      if (audioData[0] > 140) {
+      if (audioData[0] > 200) {
         this.mesh.rotation.x += 0.1;
       }
-      if (audioData[1] > 140) {
+      if (audioData[1] > 200) {
         return this.mesh.rotation.y += 0.1;
       }
     };
@@ -166,7 +171,7 @@
 
   setupLight = function() {
     var light;
-    light = new THREE.PointLight(0xFFFF00);
+    light = new THREE.PointLight(0xFFFFFF);
     light.position.set(10, 0, 10);
     return light;
   };
@@ -264,12 +269,15 @@
   };
 
   initAnims = function(scene) {
-    var anims;
+    var anims, fg_anims;
+    fg_anims = _.map(videos.fg, function(v, k) {
+      return new CircleVideoAnimation(k);
+    });
     anims = {
       bg: _.map(videos.bg, function(v, k) {
         return new PlaneVideoAnimation(k);
       }),
-      fg: [new BoxAnimation(0)]
+      fg: fg_anims.concat([new BoxAnimation(6)])
     };
     anims.bg[0].start();
     anims.fg[0].start();
@@ -307,10 +315,11 @@
     light = setupLight();
     scene.add(light);
     setupSocket(scene, anims, current_anims);
+    console.log(analyser);
     render_fn = function() {
       renderer.render(scene, camera);
       stats.update();
-      return analyser.getByteTimeDomainData(audioData);
+      return analyser.getByteFrequencyData(audioData);
     };
     return startLoop(render_fn, current_anims, audioData);
   };

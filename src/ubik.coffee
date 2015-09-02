@@ -41,12 +41,16 @@ class CircleVideoAnimation extends VideoAnimation
 
 class BoxAnimation extends Animation
   constructor: (@id) ->
-    material = @getMaterial()
+    texture = @getTexture()
+    material = @getMaterial(texture)
     @mesh = @getBoxMesh(material)
     @mesh.position.set 0, 0, 0.1
 
-  getMaterial: ->
-    new THREE.MeshLambertMaterial {color: 0xCC0000}
+  getTexture: ->
+    THREE.ImageUtils.loadTexture("/images/marble.jpg");
+
+  getMaterial: (texture) ->
+    new THREE.MeshLambertMaterial {map: texture}
 
   getBoxMesh: (material) ->
     side = 0.15
@@ -54,8 +58,8 @@ class BoxAnimation extends Animation
     new THREE.Mesh(new THREE.BoxGeometry(side, side, side), material)
 
   update: (delta, now, audioData) ->
-    @mesh.rotation.x += 0.1 if audioData[0] > 140
-    @mesh.rotation.y += 0.1 if audioData[1] > 140
+    @mesh.rotation.x += 0.1 if audioData[0] > 200
+    @mesh.rotation.y += 0.1 if audioData[1] > 200
 
 class PlaneVideoAnimation extends VideoAnimation
   constructor: (@id) ->
@@ -77,7 +81,7 @@ setupCamera = (scene) ->
   camera
 
 setupLight = ->
-  light = new (THREE.PointLight)(0xFFFF00)
+  light = new (THREE.PointLight)(0xFFFFFF)
   light.position.set 10, 0, 10
   light
 
@@ -146,11 +150,12 @@ setupSocket = (scene, anims, current_anims) ->
     setAnim msg.anim_type, msg.anim_id, scene, anims, current_anims
 
 initAnims = (scene) ->
+  fg_anims = _.map videos.fg, (v, k) -> new CircleVideoAnimation k
   anims =
     bg:
       _.map videos.bg, (v, k) -> new PlaneVideoAnimation k
     fg:
-      [new BoxAnimation 0] #_.map videos.fg, (v, k) -> new CircleVideoAnimation k
+      fg_anims.concat [new BoxAnimation 6]
   anims.bg[0].start()
   anims.fg[0].start()
   scene.add anims.bg[0].mesh
@@ -180,8 +185,9 @@ window.onload = ->
   light = setupLight()
   scene.add light
   setupSocket scene, anims, current_anims
+  console.log(analyser)
   render_fn = ->
     renderer.render scene, camera
     stats.update()
-    analyser.getByteTimeDomainData(audioData);
+    analyser.getByteFrequencyData(audioData);
   startLoop render_fn, current_anims, audioData

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Anim control</title>
+<script src="js/jquery.min.js"></script>
+<script src="js/socket.io.min.js"></script>
+<!-- <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"> -->
+<script src="js/anim.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div id="background"></div>
+    <div id="log"></div>
+    <div id="main-menu">
+      <div class="menu-item-outer">
+	<div class="menu-item-middle"><div id="bg-btn" class="menu-item"></div></div>
+      </div>
+      <div class="menu-item-outer">
+	<div class="menu-item-middle"><div id="fg-btn" class="menu-item"></div></div>
+      </div>
+      <div class="menu-item-outer">
+	<div class="menu-item-middle"><div id="color-btn" class="menu-item"></div></div>
+      </div>
+    </div>
+
+    <div id="bg-menu" class="sub-menu">
+      {% for id in anims['bg'] %}
+      <div id="bg-{{ id }}" class="anim-selector"><h2>bg anim {{ id }}</h2></div>
+      {% endfor %}
+    </div>
+
+    <div id="fg-menu" class="sub-menu">
+      {% for id in anims['fg'] %}
+      <div id="fg-{{ id }}" class="anim-selector"><h2>fg anim {{ id }}</h2></div>
+      {% endfor %}
+      {% for id in anims['custom'] %}
+      <div id="custom-{{ id }}" class="anim-selector"><h2>custom anim {{ id }}</h2></div>
+    {% endfor %}
+    </div>
+
+    <div id="color-menu" class="sub-menu">
+    {% for id in anims['color'] %}
+    <div id="color-{{ id }}" class="anim-selector"><h2>{{ id }}</h2></div>
+    {% endfor %}
+    </div>
+  </div>
+
+</body>
+
+</html> 

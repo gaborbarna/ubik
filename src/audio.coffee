@@ -1,3 +1,7 @@
+root = exports ? this
+
+navigator.getUserMedia = navigator.getUserMedia or navigator.webkitGetUserMedia or navigator.mozGetUserMedia or navigator.msGetUserMedia
+
 setupAudioStream = (audioCtx, analyser, distortion, biquadFilter, convolver, gainNode) ->
   if navigator.getUserMedia
     navigator.getUserMedia { audio: true }, ((stream) ->
@@ -21,7 +25,7 @@ createAudioAnalyser = (audioCtx) ->
   analyser.fftSize = 32
   analyser
 
-getAudioAnalyser = ->
+root.getAudioAnalyser = ->
   audioCtx = new ((window.AudioContext or window.webkitAudioContext))
   analyser = createAudioAnalyser(audioCtx)
   distortion = audioCtx.createWaveShaper()
@@ -31,19 +35,14 @@ getAudioAnalyser = ->
   setupAudioStream audioCtx, analyser, distortion, biquadFilter, convolver, gainNode
   analyser
 
-getDataArray = (analyser) ->
+root.getDataArray = (analyser) ->
   bufferLength = analyser.frequencyBinCount
   new Uint8Array(bufferLength)
 
-navigator.getUserMedia = navigator.getUserMedia or navigator.webkitGetUserMedia or navigator.mozGetUserMedia or navigator.msGetUserMedia
-
-# var analyser = getAnalyser();
-# var dataArray = getDataArray(analyser);
-# function draw() {
-#     drawVisual = requestAnimationFrame(draw);
-#     analyser.getByteTimeDomainData(dataArray);
-#     if (dataArray[0] > 150) {
-# 	console.log(dataArray);
-#     }
-# };
+# analyser = getAudioAnalyser()
+# dataArray = getDataArray(analyser)
+# draw = ->
+#   requestAnimationFrame(draw);
+#   analyser.getByteTimeDomainData(dataArray)
+#   console.log(dataArray)
 # draw();

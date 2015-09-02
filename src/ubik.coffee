@@ -6,7 +6,7 @@ videos =
 
 class Animation
   constructor: (@id) ->
-  update: (delta, now) ->
+  update: (delta, now, audioData) ->
   start: ->
   stop: ->
 
@@ -21,11 +21,10 @@ class VideoAnimation extends Animation
   getMaterial: (videoTexture) ->
     new (THREE.MeshBasicMaterial)(map: videoTexture.texture)
 
-  update: (delta, now) ->
+  update: (delta, now, audioData) ->
     @videoTexture.update delta, now
 
   start: ->
-    console.log(@videoTexture)
     video = @videoTexture.video
     video.play()
 
@@ -40,23 +39,23 @@ class CircleVideoAnimation extends VideoAnimation
     @mesh = getCircleMesh(material, 0.2)
     @mesh.position.set 0, 0, 0.1
 
-class CircleAnimation extends Animation
+class BoxAnimation extends Animation
   constructor: (@id) ->
     material = @getMaterial()
-    @mesh = @getSphereMesh(material)
+    @mesh = @getBoxMesh(material)
     @mesh.position.set 0, 0, 0.1
 
   getMaterial: ->
     new THREE.MeshLambertMaterial {color: 0xCC0000}
 
-  getSphereMesh: (material) ->
-    segments = 128
-    radius = 0.2
+  getBoxMesh: (material) ->
+    side = 0.15
     rings = 16
-    new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), material)
-    
-  update: (delta, now) ->
-    @mesh.position.x += 0.001
+    new THREE.Mesh(new THREE.BoxGeometry(side, side, side), material)
+
+  update: (delta, now, audioData) ->
+    @mesh.rotation.x += 0.1 if audioData[0] > 140
+    @mesh.rotation.y += 0.1 if audioData[1] > 140
 
 class PlaneVideoAnimation extends VideoAnimation
   constructor: (@id) ->
@@ -91,14 +90,15 @@ getPlaneMesh = (material) ->
   planeGeometry = new (THREE.PlaneGeometry)(1.5, 0.83)
   new (THREE.Mesh)(planeGeometry, material)
 
-startLoop = (render_fn, current_animations) ->
+startLoop = (render_fn, current_animations, audioData) ->
   lastTimeMsec = null
   animate = (nowMsec) ->
     setTimeout (-> requestAnimationFrame animate), 1000 / 30
     lastTimeMsec = lastTimeMsec or nowMsec - (1000 / 60)
     deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
     lastTimeMsec = nowMsec
-    _.forEach current_animations, (anim, key) -> anim.update(deltaMsec/1000, nowMsec/1000)
+    _.forEach current_animations, (anim, key) ->
+      anim.update(deltaMsec/1000, nowMsec/1000, audioData)
     render_fn()
   requestAnimationFrame(animate)
 
@@ -121,7 +121,6 @@ createStats = ->
 
 addAnim = (anim_type, anim_id, scene, anims, current_anims) ->
   anim = anims[anim_type][anim_id]
-  console.log(anim)
   anim.start()
   current_anims[anim_type] = anim
   scene.add anim.mesh
@@ -133,14 +132,13 @@ removeAnim = (anim_type, current_anims, scene) ->
 
 setAnim = (anim_type, anim_id, scene, anims, current_anims) ->
   if anim_type == 'color'
-    console.log anim_id
     $('body').css 'background-color': '#' + anim_id
   else
     removeAnim anim_type, current_anims, scene
     addAnim anim_type, anim_id, scene, anims, current_anims
 
 setupSocket = (scene, anims, current_anims) ->
-  socket = io('http://intense-reef-4259.herokuapp.com/')
+  socket = io('http://ubikeklektik.herokuapp.com/')
   socket.on 'connect', ->
     console.log 'connected'
   socket.on 'anim response', (msg) ->
@@ -152,7 +150,7 @@ initAnims = (scene) ->
     bg:
       _.map videos.bg, (v, k) -> new PlaneVideoAnimation k
     fg:
-      _.map videos.fg, (v, k) -> new CircleVideoAnimation k
+      [new BoxAnimation 0] #_.map videos.fg, (v, k) -> new CircleVideoAnimation k
   anims.bg[0].start()
   anims.fg[0].start()
   scene.add anims.bg[0].mesh
@@ -166,13 +164,14 @@ getBackgroundCircle = ->
   mesh
 
 window.onload = ->
+  analyser = getAudioAnalyser()
+  audioData = getDataArray analyser  
   renderer = setupRenderer()
   document.body.appendChild renderer.domElement
   scene = new (THREE.Scene)
   camera = setupCamera(scene)
   stats = createStats()
   anims = initAnims(scene)
-  
   current_anims =
      bg: anims.bg[0]
      fg: anims.fg[0]
@@ -184,4 +183,5 @@ window.onload = ->
   render_fn = ->
     renderer.render scene, camera
     stats.update()
-  startLoop render_fn, current_anims
+    analyser.getByteTimeDomainData(audioData);
+  startLoop render_fn, current_anims, audioData
